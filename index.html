@@ -26,14 +26,13 @@
     
     /* Reset & Base */
     #lyon-widget * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; padding: 0; background: transparent; } /* Fond transparent pour l'iframe */
+    body { margin: 0; padding: 0; background: transparent; }
 
     #lyon-widget {
         font-family: var(--lw-font-main); color: var(--lw-text); background-color: var(--lw-bg);
         width: 100%; max-width: 900px; margin: 0 auto; border-radius: var(--lw-radius);
         border: 1px solid var(--lw-border); display: flex; flex-direction: column;
         overflow: hidden; box-shadow: var(--lw-shadow);
-        /* Hauteur auto pour s'adapter au contenu */
         height: auto; 
     }
 
@@ -56,22 +55,22 @@
     #lyon-widget .lw-btn-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--lw-muted); }
     #lyon-widget .lw-btn.active .lw-btn-dot { background-color: #FFF; }
     
-    /* MAP (Hauteur ajustable) */
+    /* MAP */
     #lyon-widget #lw-map-wrapper { position: relative; width: 100%; height: 450px; z-index: 1; flex-shrink: 0; transition: height 0.3s; }
     #lyon-widget #lw-map { width: 100%; height: 100%; background: var(--lw-bg-alt); }
     
-    /* CHART (Correctif chevauchement) */
+    /* CHART */
     #lyon-widget .lw-chart-container { 
         padding: 15px 20px; 
-        height: 220px; /* Hauteur fixe sécurisée */
+        height: 220px;
         background: var(--lw-bg); 
         border-top: 1px solid var(--lw-border);
-        flex-shrink: 0; /* Empêche l'écrasement */
+        flex-shrink: 0; 
         display: flex; flex-direction: column;
     }
     #lyon-widget .lw-stats { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 10px; font-size: 13px; color: var(--lw-text); justify-content: center; }
     #lyon-widget .lw-stat-val { font-weight: 700; color: var(--lw-orange); font-family: monospace; font-size: 14px; }
-    #lyon-widget canvas { flex: 1; min-height: 0; } /* Important pour Chart.js */
+    #lyon-widget canvas { flex: 1; min-height: 0; } 
 
     /* FOOTER */
     #lyon-widget footer { 
@@ -87,19 +86,16 @@
     #lyon-widget input:checked + .lw-switch { background: var(--lw-orange); }
     #lyon-widget input:checked + .lw-switch::after { transform: translateX(14px); }
 
-    /* --- MEDIA QUERIES (Pour régler le problème de Crop sur mobile) --- */
+    /* --- MOBILE OPTIMIZATIONS --- */
     @media (max-width: 600px) {
-        /* Réduire la hauteur de la carte sur mobile */
-        #lyon-widget #lw-map-wrapper { height: 300px; }
-        /* Réduire un peu le header */
+        #lyon-widget #lw-map-wrapper { height: 280px; } /* Carte un peu plus petite pour laisser la place */
         #lyon-widget h1 { font-size: 18px; }
-        /* Empiler les stats si besoin */
-        #lyon-widget .lw-stats { gap: 10px; font-size: 12px; }
-        /* Réduire la hauteur du graphique */
-        #lyon-widget .lw-chart-container { height: 180px; padding: 10px; }
+        #lyon-widget .lw-stats { gap: 10px; font-size: 12px; margin-bottom: 5px; }
+        /* On augmente la hauteur du chart sur mobile pour "détendre" la courbe */
+        #lyon-widget .lw-chart-container { height: 240px; padding: 10px 10px 0 10px; } 
     }
     
-    /* Messages d'erreur */
+    /* ERROR MSG */
     #lyon-widget .lw-error-msg {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(255, 255, 255, 0.95); border: 2px solid #E65100; padding: 15px; border-radius: 8px;
@@ -177,7 +173,6 @@
             if (trkpts.length === 0) throw new Error("Aucun point GPS trouvé.");
             
             let points = [];
-            // Optimisation : si trop de points, on échantillonne pour garder l'app fluide
             const step = trkpts.length > 4000 ? 2 : 1;
             for (let i = 0; i < trkpts.length; i += step) {
                 const lat = parseFloat(trkpts[i].getAttribute("lat"));
@@ -218,8 +213,6 @@
             }
             if (points[i][2] > maxAlt) maxAlt = points[i][2];
             
-            // Réduction points pour le graphique uniquement (pas la carte)
-            // Garder max 100 points pour le graph pour la lisibilité
             const chartStep = Math.max(1, Math.floor(points.length / 100));
             if (i % chartStep === 0 || i === points.length - 1) { 
                  distLabels.push(totalDist.toFixed(1));
@@ -316,9 +309,28 @@
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Altitude (m)', data: [], borderWidth: 1, pointRadius: 0, pointHoverRadius: 6, fill: true, tension: 0.2 }] },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, callbacks: { title: (i) => `Km ${i[0].label}`, label: (i) => `${Math.round(i.raw)} m` } } },
-                scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: {size: 10} } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: {size: 10} } } },
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false }, 
+                    tooltip: { 
+                        mode: 'index', 
+                        intersect: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)', // Fond blanc pour la lisibilité
+                        titleColor: '#000', // Titre noir
+                        bodyColor: '#333', // Texte gris foncé
+                        borderColor: '#ccc', // Bordure fine
+                        borderWidth: 1,
+                        padding: 12, // Plus d'espace
+                        titleFont: { size: 14, family: "'Roboto', sans-serif" }, // Police plus grande
+                        bodyFont: { size: 13, family: "'Roboto', sans-serif" },
+                        callbacks: { title: (i) => `Km ${i[0].label}`, label: (i) => `${Math.round(i.raw)} m` } 
+                    } 
+                },
+                scales: { 
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: {size: 11} } }, 
+                    y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: {size: 11} } } 
+                },
                 interaction: { mode: 'nearest', axis: 'x', intersect: false }
             }
         });
@@ -326,6 +338,8 @@
         document.getElementById('lw-dark-check').onchange = (e) => {
             document.getElementById('lyon-widget').classList.toggle('lw-dark', e.target.checked);
             const textColor = e.target.checked ? '#ADB5BD' : '#666';
+            // Note: On garde le tooltip blanc/noir même en mode sombre pour le contraste max, 
+            // ou on peut l'inverser ici si tu préfères.
             state.chart.options.scales.x.ticks.color = textColor;
             state.chart.options.scales.y.ticks.color = textColor;
             state.chart.update();
