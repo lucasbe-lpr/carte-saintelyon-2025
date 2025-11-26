@@ -16,7 +16,7 @@
     ================================================================== */
     #lyon-widget {
       --lw-bg: #FFFFFF; --lw-bg-alt: #F8F9FA; --lw-text: #212529; --lw-muted: #6C757D;
-      --lw-accent: #212529; --lw-orange: #E65100; --lw-border: #DEE2E6; --lw-radius: 0px;
+      --lw-accent: #212529; --lw-orange: #E65100; --lw-border: #DEE2E6; --lw-radius: 8px; /* Rayon rétabli */
       --lw-font-main: 'Roboto', sans-serif;
     }
     #lyon-widget.lw-dark {
@@ -25,14 +25,28 @@
     }
     
     /* RESET TOTAL POUR EVITER LE SCROLL */
+    /* L'iframe hôte doit prendre 100% de l'espace alloué, et on laisse une petite marge pour l'ombre */
     html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; background-color: transparent; }
     
-    /* STRUCTURE "APP" */
+    /* STRUCTURE "APP" - Doit toujours être 100% sans bordures pour ne pas déborder */
     #lyon-widget {
-        font-family: var(--lw-font-main); color: var(--lw-text); background-color: var(--lw-bg);
-        width: 100%; height: 100%; /* Prend tout l'espace de l'iframe */
-        display: flex; flex-direction: column; /* Empilement vertical */
-        overflow: hidden; /* Coupe tout ce qui dépasse */
+        font-family: var(--lw-font-main); color: var(--lw-text);
+        width: 100%; height: 100%; 
+        display: flex; flex-direction: column; 
+        overflow: hidden; 
+        padding: 6px; /* Marge pour que l'ombre du cadre (.lw-card) soit visible */
+        box-sizing: border-box; /* IMPORTANT : le padding ne doit pas déborder */
+    }
+
+    /* NOUVEAU CONTENEUR POUR LE CADRE VISUEL */
+    #lyon-widget .lw-card {
+        background-color: var(--lw-bg);
+        border-radius: var(--lw-radius);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Ombre légère pour effet de carte */
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* Prend tout l'espace disponible dans #lyon-widget */
+        overflow: hidden; /* Les coins arrondis doivent couper le contenu */
     }
 
     /* HEADER - Taille fixe */
@@ -57,7 +71,7 @@
     #lyon-widget #lw-map-wrapper { 
         position: relative; width: 100%; 
         flex: 1; /* Elastique ! */
-        min-height: 150px; /* Sécurité pour ne pas disparaître */
+        min-height: 150px; 
         z-index: 1; 
     }
     #lyon-widget #lw-map { width: 100%; height: 100%; background: var(--lw-bg-alt); }
@@ -80,6 +94,17 @@
         padding: 8px 15px; background: var(--lw-bg-alt); border-top: 1px solid var(--lw-border); 
         display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--lw-muted);
         flex-shrink: 0; 
+        border-bottom-left-radius: var(--lw-radius); /* Rendre le footer arrondi en bas */
+        border-bottom-right-radius: var(--lw-radius);
+    }
+    /* Les coins arrondis doivent être sur les enfants du card */
+    #lyon-widget header {
+         border-top-left-radius: var(--lw-radius);
+         border-top-right-radius: var(--lw-radius);
+    }
+    #lyon-widget .lw-controls {
+         border-top-left-radius: 0;
+         border-top-right-radius: 0;
     }
     
     #lyon-widget .lw-toggle-wrapper { display: flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -104,42 +129,54 @@
     }
     #lyon-widget .lw-error-msg.active { display: block; }
 
+    /* Forcer l'arrondi sur la carte elle-même (Leaflet) */
+    .lw-card #lw-map-wrapper {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+    .lw-card #lw-map {
+         border-radius: 0; /* Pas d'arrondi sur la carte pour éviter les chevauchements visuels */
+    }
+
+
   </style>
 </head>
 <body>
 
 <div id="lyon-widget">
-  <header>
-    <div class="lw-subtitle">SaintéLyon 2025</div>
-    <h1>Carte des parcours</h1>
-  </header>
+    <div class="lw-card">
+        <header>
+            <div class="lw-subtitle">SaintéLyon 2025</div>
+            <h1>Carte des parcours</h1>
+        </header>
 
-  <div class="lw-controls">
-    <div class="lw-course-selector" id="course-buttons"></div>
-  </div>
+        <div class="lw-controls">
+            <div class="lw-course-selector" id="course-buttons"></div>
+        </div>
 
-  <div id="lw-map-wrapper">
-    <div id="lw-map"></div>
-    <div class="lw-error-msg" id="lw-error"></div>
-  </div>
+        <div id="lw-map-wrapper">
+            <div id="lw-map"></div>
+            <div class="lw-error-msg" id="lw-error"></div>
+        </div>
 
-  <div class="lw-chart-container">
-    <div class="lw-stats">
-        <span>Dist. <span class="lw-stat-val" id="stat-dist">-</span></span>
-        <span>D+ <span class="lw-stat-val" id="stat-dplus">-</span></span>
-        <span>Alt. Max <span class="lw-stat-val" id="stat-alt">-</span></span>
+        <div class="lw-chart-container">
+            <div class="lw-stats">
+                <span>Dist. <span class="lw-stat-val" id="stat-dist">-</span></span>
+                <span>D+ <span class="lw-stat-val" id="stat-dplus">-</span></span>
+                <span>Alt. Max <span class="lw-stat-val" id="stat-alt">-</span></span>
+            </div>
+            <canvas id="elevationChart"></canvas>
+        </div>
+
+        <footer> 
+            <div class="lw-source-credit">Données : <b>OpenRunner</b></div>
+            <label class="lw-toggle-wrapper">
+                <input type="checkbox" id="lw-dark-check" style="display:none">
+                <span class="lw-switch"></span>
+                <span>Sombre</span>
+            </label>
+        </footer>
     </div>
-    <canvas id="elevationChart"></canvas>
-  </div>
-
-  <footer> 
-    <div class="lw-source-credit">Données : <b>OpenRunner</b></div>
-    <label class="lw-toggle-wrapper">
-        <input type="checkbox" id="lw-dark-check" style="display:none">
-        <span class="lw-switch"></span>
-        <span>Sombre</span>
-    </label>
-  </footer>
 </div>
 
 <script>
@@ -163,7 +200,8 @@
         if (course.cache) return course.cache;
 
         try {
-            const response = await fetch(course.url);
+            // Note: Les chemins 'data/*.gpx' sont des placeholders. En production, cela devra pointer vers une URL réelle.
+            const response = await fetch(course.url); 
             if (!response.ok) throw new Error(`Fichier "${course.url}" introuvable.`);
             const str = await response.text();
             const parser = new DOMParser();
@@ -214,8 +252,7 @@
             }
             if (points[i][2] > maxAlt) maxAlt = points[i][2];
             
-            // On échantillonne pour le graphique uniquement (100 points max)
-            // Cela rend le tooltip fluide et évite l'effet "écrasé" d'avoir 5000 points
+            // On échantillonne pour le graphique uniquement (150 points max)
             const chartStep = Math.max(1, Math.floor(points.length / 150));
             if (i % chartStep === 0 || i === points.length - 1) { 
                  distLabels.push(totalDist.toFixed(1));
@@ -297,6 +334,8 @@
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19
         }).addTo(state.map);
+        // Solution pour les problèmes d'affichage des tuiles Leaflet
+        setTimeout(() => state.map.invalidateSize(), 500); 
 
         const btnContainer = document.getElementById('course-buttons');
         Object.keys(COURSES).forEach(key => {
@@ -341,10 +380,14 @@
 
         document.getElementById('lw-dark-check').onchange = (e) => {
             document.getElementById('lyon-widget').classList.toggle('lw-dark', e.target.checked);
-            const textColor = e.target.checked ? '#ADB5BD' : '#666';
+            const isDark = e.target.checked;
+            const textColor = isDark ? '#ADB5BD' : '#666';
             state.chart.options.scales.x.ticks.color = textColor;
             state.chart.options.scales.y.ticks.color = textColor;
             state.chart.update();
+
+             // Force le Leaflet à se redessiner, crucial lors des changements de style
+            setTimeout(() => state.map.invalidateSize(), 100);
         };
 
         switchCourse('saintelyon');
