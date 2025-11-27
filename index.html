@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Parcours SaintéLyon 2025 - Le Progrès</title>
+  <title>Parcours SaintéLyon 2025</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -183,11 +183,11 @@
 (function() {
     
     const COURSES = {
-        "lyonsaintelyon": { name: "LyonSaintéLyon", url: "data/lyonsaintelyon.gpx", color: "#7F018A", cache: null },
-        "saintelyon":     { name: "La SaintéLyon",  url: "data/saintelyon.gpx",     color: "#E65100", cache: null },
-        "saintexpress":   { name: "SaintExpress",   url: "data/saintexpress.gpx",   color: "#D32F2F", cache: null },
-        "saintesprint":   { name: "SaintéSprint",   url: "data/saintesprint.gpx",   color: "#1976D2", cache: null },
-        "saintetic":      { name: "SaintéTic",      url: "data/saintetic.gpx",      color: "#388E3C", cache: null }
+        "lyonsaintelyon": { name: "LyonSaintéLyon", url: "data/lyonsaintelyon.gpx", color: "#C900CC", cache: null },
+        "saintelyon":     { name: "SaintéLyon",  url: "data/saintelyon.gpx",     color: "#CC0000", cache: null },
+        "saintexpress":   { name: "SaintExpress",   url: "data/saintexpress.gpx",   color: "#CC9900", cache: null },
+        "saintesprint":   { name: "SaintéSprint",   url: "data/saintesprint.gpx",   color: "#00CCCC", cache: null },
+        "saintetic":      { name: "SaintéTic",      url: "data/saintetic.gpx",      color: "#00CC0E", cache: null }
     };
 
     const state = { map: null, currentLayer: null, chart: null, activeCourseKey: 'saintelyon' };
@@ -400,5 +400,6 @@
 </script>
 </body>
 </html>
+
 
 
