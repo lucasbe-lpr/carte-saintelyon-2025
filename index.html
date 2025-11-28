@@ -11,27 +11,19 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
 
   <style>
-    /* --- CONFIGURATION CSS ---
-       J'utilise des variables CSS pour gérer le thème (clair/sombre) facilement.
-       Le namespace #lyon-widget est vital pour ne pas que le CSS de mon site parent
-       vienne casser le style de l'iframe.
-    */
+    /* --- CONFIGURATION CSS --- */
     #lyon-widget {
       --lw-bg: #FFFFFF; --lw-bg-alt: #F8F9FA; --lw-text: #212529; --lw-muted: #6C757D;
       --lw-accent: #212529; --lw-orange: #E65100; --lw-border: #DEE2E6; --lw-radius: 8px;
       --lw-font-main: 'Roboto', sans-serif;
     }
     
-    /* Mode sombre activé via JS */
     #lyon-widget.lw-dark {
         --lw-bg: #1A1A1A; --lw-bg-alt: #252525; --lw-text: #E9ECEF; --lw-muted: #ADB5BD;
         --lw-accent: #FFFFFF; --lw-border: #343A40;
     }
     
-    /* --- LAYOUT & RESET ---
-       Important : html/body à 100% et overflow hidden pour que l'app se comporte
-       comme une "carte" fixe et pas comme une page web qui scroll.
-    */
+    /* --- LAYOUT --- */
     html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; background-color: transparent; }
     
     #lyon-widget {
@@ -39,18 +31,17 @@
         width: 100%; height: 100%; 
         display: flex; flex-direction: column; 
         overflow: hidden; 
-        padding: 6px; /* Petite marge pour l'ombre portée */
+        padding: 6px;
         box-sizing: border-box; 
     }
 
-    /* Le conteneur principal (la "carte" visuelle) */
     #lyon-widget .lw-card {
         background-color: var(--lw-bg);
         border-radius: var(--lw-radius);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         display: flex;
         flex-direction: column;
-        flex: 1; /* Prend toute la hauteur dispo */
+        flex: 1; 
         overflow: hidden; 
     }
 
@@ -59,50 +50,44 @@
     #lyon-widget h1 { font-size: 20px; font-weight: 700; color: var(--lw-accent); margin: 0; text-transform: uppercase; line-height: 1.2; }
     #lyon-widget .lw-subtitle { font-size: 12px; color: var(--lw-orange); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;}
 
-    /* --- BARRE DE CONTROLE --- */
+    /* --- CONTROLS --- */
     #lyon-widget .lw-controls { 
         padding: 10px; 
         background-color: var(--lw-bg-alt); 
         border-bottom: 1px solid var(--lw-border); 
         flex-shrink: 0;
-        display: flex;
-        flex-direction: column; /* Pour mobile, je stack les éléments si besoin */
-        gap: 8px;
+        /* J'ai retiré le display column car on n'a plus qu'une seule ligne de boutons maintenant */
     }
     
-    /* Zone des boutons de parcours */
     #lyon-widget .lw-course-selector { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
     
-    /* Zone des outils (Bouton profil) */
-    #lyon-widget .lw-tools-selector { display: flex; justify-content: center; padding-top: 4px; border-top: 1px dashed var(--lw-border); margin-top: 4px; }
-
-    /* Style générique des boutons (Pillules) */
     #lyon-widget .lw-btn {
         padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; 
         border: 1px solid var(--lw-border); background-color: var(--lw-bg); color: var(--lw-muted);
         transition: all 0.2s; display: flex; align-items: center; gap: 5px; user-select: none; white-space: nowrap;
     }
     #lyon-widget .lw-btn:hover { border-color: var(--lw-orange); color: var(--lw-orange); }
-    
-    /* État actif du bouton */
     #lyon-widget .lw-btn.active { background-color: var(--lw-orange); color: #FFF; border-color: var(--lw-orange); font-weight: 700; }
-    
-    /* Le petit point de couleur dans le bouton */
     #lyon-widget .lw-btn-dot { width: 6px; height: 6px; border-radius: 50%; background-color: var(--lw-muted); }
     #lyon-widget .lw-btn.active .lw-btn-dot { background-color: #FFF; }
     
-    /* --- MAP CONTAINER --- */
-    /* Flex 1 est CRUCIAL ici : ça dit à la map de prendre tout l'espace restant. 
-       Si le graphique est caché, la map grandit automatiquement. */
+    /* --- MAP --- */
     #lyon-widget #lw-map-wrapper { 
         position: relative; width: 100%; 
+        /* [NOTE HAUTEUR-CARTE] 
+           C'est ici que ça se joue.
+           "flex: 1" veut dire "prends tout l'espace disponible restant".
+           Si tu veux que la carte soit plus petite ou plus grande par défaut, 
+           tu peux jouer sur le "min-height".
+           Par exemple : min-height: 300px; forcera la carte à être grande.
+        */
         flex: 1; 
         min-height: 150px; 
         z-index: 1; 
     }
     #lyon-widget #lw-map { width: 100%; height: 100%; background: var(--lw-bg-alt); }
     
-    /* --- CHART CONTAINER (PROFIL ALTI) --- */
+    /* --- CHART --- */
     #lyon-widget .lw-chart-container { 
         padding: 10px 15px 0 15px; 
         height: 200px; 
@@ -110,21 +95,14 @@
         border-top: 1px solid var(--lw-border);
         flex-shrink: 0; 
         display: flex; flex-direction: column;
-        /* Transition fluide quand on l'affiche/masque */
         transition: height 0.3s ease, padding 0.3s ease;
     }
-
-    /* Classe utilitaire pour masquer le graphique proprement */
-    #lyon-widget .lw-chart-container.hidden {
-        display: none; 
-        /* Note: display: none casse l'animation CSS pure, mais c'est plus performant pour le rendu Leaflet */
-    }
-
+    #lyon-widget .lw-chart-container.hidden { display: none; }
     #lyon-widget .lw-stats { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 5px; font-size: 12px; color: var(--lw-text); justify-content: center; }
     #lyon-widget .lw-stat-val { font-weight: 700; color: var(--lw-orange); font-family: monospace; font-size: 13px; }
     #lyon-widget canvas { flex: 1; min-height: 0; max-height: 160px; } 
 
-    /* --- FOOTER --- */
+    /* --- FOOTER (Nouveau Design) --- */
     #lyon-widget footer { 
         padding: 8px 15px; background: var(--lw-bg-alt); border-top: 1px solid var(--lw-border); 
         display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--lw-muted);
@@ -133,25 +111,33 @@
         border-bottom-right-radius: var(--lw-radius);
     }
     
-    /* Gestion des arrondis en haut du widget */
-    #lyon-widget header { border-top-left-radius: var(--lw-radius); border-top-right-radius: var(--lw-radius); }
-    #lyon-widget .lw-controls { border-radius: 0; }
+    /* Groupe d'options à droite (Profil + Dark Mode) */
+    #lyon-widget .lw-footer-options {
+        display: flex;
+        align-items: center;
+        gap: 15px; /* Espace entre "Profil" et "Sombre" */
+    }
+
+    /* Bouton texte simple pour le profil (Style "Le Monde") */
+    #lyon-widget .lw-text-btn {
+        cursor: pointer; display: flex; align-items: center; gap: 4px; 
+        transition: color 0.2s; font-weight: 500;
+    }
+    #lyon-widget .lw-text-btn:hover { color: var(--lw-orange); }
+    #lyon-widget .lw-text-btn.active { color: var(--lw-orange); font-weight: 700; }
     
-    /* Toggle Switch (Dark Mode) - CSS pur, pas d'images */
+    /* Toggle Switch (Dark Mode) */
     #lyon-widget .lw-toggle-wrapper { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     #lyon-widget .lw-switch { position: relative; width: 28px; height: 16px; background: var(--lw-border); border-radius: 20px; transition: 0.2s; }
     #lyon-widget .lw-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #FFF; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
     #lyon-widget input:checked + .lw-switch { background: var(--lw-orange); }
     #lyon-widget input:checked + .lw-switch::after { transform: translateX(12px); }
 
-    /* --- MOBILE TWEAKS --- */
+    /* --- MOBILE & ERROR --- */
     @media (max-height: 600px) {
-        /* Sur les petits écrans en hauteur, je réduis le chart sinon on voit plus la map */
         #lyon-widget .lw-chart-container { height: 160px; }
         #lyon-widget header { padding: 8px 15px; }
     }
-    
-    /* --- ERROR MESSAGE --- */
     #lyon-widget .lw-error-msg {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(255, 255, 255, 0.95); border: 2px solid #E65100; padding: 15px; border-radius: 8px;
@@ -160,7 +146,8 @@
     }
     #lyon-widget .lw-error-msg.active { display: block; }
 
-    /* Correction Leaflet : pas d'arrondis sur le canvas de la map sinon ça bug */
+    #lyon-widget header { border-top-left-radius: var(--lw-radius); border-top-right-radius: var(--lw-radius); }
+    #lyon-widget .lw-controls { border-radius: 0; }
     .lw-card #lw-map-wrapper { border-radius: 0; }
     .lw-card #lw-map { border-radius: 0; }
 
@@ -177,12 +164,6 @@
 
         <div class="lw-controls">
             <div class="lw-course-selector" id="course-buttons"></div>
-            
-            <div class="lw-tools-selector">
-                <div class="lw-btn" id="btn-toggle-chart">
-                    <span>📈 Afficher le profil</span>
-                </div>
-            </div>
         </div>
 
         <div id="lw-map-wrapper">
@@ -201,20 +182,25 @@
 
         <footer> 
             <div class="lw-source-credit">Données : <b>OpenRunner</b></div>
-            <label class="lw-toggle-wrapper">
-                <input type="checkbox" id="lw-dark-check" style="display:none">
-                <span class="lw-switch"></span>
-                <span>Sombre</span>
-            </label>
+            
+            <div class="lw-footer-options">
+                <div class="lw-text-btn" id="btn-toggle-chart">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.5 14.5L13.5 7.5L8.5 12.5L4.5 9"/></svg>
+                    <span>Profil</span>
+                </div>
+
+                <label class="lw-toggle-wrapper">
+                    <input type="checkbox" id="lw-dark-check" style="display:none">
+                    <span class="lw-switch"></span>
+                    <span>Sombre</span>
+                </label>
+            </div>
         </footer>
     </div>
 </div>
 
 <script>
 (function() {
-    // --- DATA ---
-    // Les URLs pointeront vers tes fichiers .gpx réels.
-    // J'utilise un objet cache pour ne pas retélécharger le GPX si l'utilisateur clique frénétiquement.
     const COURSES = {
         "lyonsaintelyon": { name: "Lyon-SaintéLyon", url: "data/lyonsaintelyon.gpx", color: "#C900CC", cache: null },
         "saintelyon":     { name: "SaintéLyon",  url: "data/saintelyon.gpx",     color: "#CC0000", cache: null },
@@ -223,187 +209,119 @@
         "saintetic":      { name: "SaintéTic",      url: "data/saintetic.gpx",      color: "#00CC0E", cache: null }
     };
 
-    // --- STATE ---
-    const state = { 
-        map: null, 
-        currentLayer: null, 
-        chart: null, 
-        activeCourseKey: 'saintelyon', // Parcours par défaut
-        chartVisible: false // Par défaut, on masque le dénivelé
-    };
+    const state = { map: null, currentLayer: null, chart: null, activeCourseKey: 'saintelyon', chartVisible: false };
 
-    // --- LOGIQUE GPX ---
-    // Fonction asynchrone pour récupérer et parser le GPX.
     async function fetchGPX(key) {
         const course = COURSES[key];
         const errorBox = document.getElementById('lw-error');
         errorBox.classList.remove('active'); 
-
-        // Si on l'a déjà en mémoire, on évite la requête réseau (perf !)
         if (course.cache) return course.cache;
-
         try {
             const response = await fetch(course.url); 
             if (!response.ok) throw new Error(`Fichier "${course.url}" introuvable.`);
-            
             const str = await response.text();
-            
-            // Parsing XML classique
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(str, "text/xml");
             if (xmlDoc.querySelector("parsererror")) throw new Error("GPX mal formé.");
-            
             const trkpts = xmlDoc.getElementsByTagName("trkpt");
             if (trkpts.length === 0) throw new Error("Aucun point GPS trouvé.");
-            
             let points = [];
-            // Optimisation mobile : si le GPX est énorme (>4000 points), je garde 1 point sur 2
-            // Ça évite de faire laguer le navigateur.
             const step = trkpts.length > 4000 ? 2 : 1;
-            
             for (let i = 0; i < trkpts.length; i += step) {
                 const lat = parseFloat(trkpts[i].getAttribute("lat"));
                 const lon = parseFloat(trkpts[i].getAttribute("lon"));
-                // Fallback à 0 si pas d'élévation, sinon le graphique plante
                 const ele = parseFloat(trkpts[i].getElementsByTagName("ele")[0]?.textContent || 0);
                 points.push([lat, lon, ele]);
             }
-            
-            course.cache = points; // On stocke pour la prochaine fois
+            course.cache = points;
             return points;
-
         } catch (e) {
-            console.error(e); // Pour le debug console
-            // Affichage user-friendly de l'erreur
+            console.error(e);
             errorBox.innerHTML = `⚠️ ${e.message}`;
             errorBox.classList.add('active');
             return [];
         }
     }
 
-    // --- MATHS ---
-    // Formule de Haversine pour calculer la distance entre deux points GPS
     function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Rayon terre
+        const R = 6371; 
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    // Préparation des données pour Chart.js
     function processDataForChart(points) {
         let distLabels = [];
         let elevations = [];
         let totalDist = 0;
         let dPlus = 0;
         let maxAlt = 0;
-
         for (let i = 0; i < points.length; i++) {
             if (i > 0) {
                 const d = calculateDistance(points[i-1][0], points[i-1][1], points[i][0], points[i][1]);
                 totalDist += d;
-                // Calcul cumulatif du dénivelé positif seulement
                 if (points[i][2] > points[i-1][2]) dPlus += (points[i][2] - points[i-1][2]);
             }
             if (points[i][2] > maxAlt) maxAlt = points[i][2];
-            
-            // Downsampling pour le graphique : on ne veut pas 10 000 points dans Chart.js
-            // On vise environ 150 points pour que le hover soit fluide
             const chartStep = Math.max(1, Math.floor(points.length / 150));
             if (i % chartStep === 0 || i === points.length - 1) { 
                  distLabels.push(totalDist.toFixed(1));
                  elevations.push(points[i][2]);
             }
         }
-        return { 
-            labels: distLabels, 
-            data: elevations, 
-            stats: { 
-                dist: totalDist.toFixed(1), 
-                dPlus: Math.round(dPlus), 
-                maxAlt: Math.round(maxAlt) 
-            } 
-        };
+        return { labels: distLabels, data: elevations, stats: { dist: totalDist.toFixed(1), dPlus: Math.round(dPlus), maxAlt: Math.round(maxAlt) } };
     }
 
     let marker = null;
-
-    // Synchronisation : quand on passe la souris sur le graphique, on bouge un point sur la carte
     function updateMapMarker(index, points, ratio) {
-        // Le graphique a moins de points que la carte (downsampling), 
-        // donc on utilise un ratio pour retrouver le vrai index GPS.
         const realIndex = Math.floor(index * ratio);
         const pt = points[Math.min(realIndex, points.length - 1)];
         if (!pt) return;
-
         if (marker) {
             marker.setLatLng([pt[0], pt[1]]);
             marker.addTo(state.map);
         } else {
-            marker = L.circleMarker([pt[0], pt[1]], { 
-                radius: 6, fillColor: COURSES[state.activeCourseKey].color, 
-                color: "#FFF", weight: 2, opacity: 1, fillOpacity: 1 
-            }).addTo(state.map);
+            marker = L.circleMarker([pt[0], pt[1]], { radius: 6, fillColor: COURSES[state.activeCourseKey].color, color: "#FFF", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(state.map);
         }
     }
 
-    // --- MAIN LOGIC ---
     async function switchCourse(key) {
         state.activeCourseKey = key;
         const course = COURSES[key];
 
-        // 1. Mise à jour des boutons (Fix du bug des boutons multiples)
-        // J'utilise maintenant dataset.key pour une correspondance exacte. 
-        // Plus de confusion entre "SaintéLyon" et "Lyon-SaintéLyon" !
         document.querySelectorAll('.lw-btn[data-key]').forEach(b => {
             b.classList.remove('active');
             b.querySelector('.lw-btn-dot').style.backgroundColor = ''; 
-            
             if (b.dataset.key === key) {
                 b.classList.add('active');
                 b.querySelector('.lw-btn-dot').style.backgroundColor = '#FFF';
             } else {
-                // Remet la couleur originale du point si inactif
                 const k = b.dataset.key;
                 if(k && COURSES[k]) b.querySelector('.lw-btn-dot').style.backgroundColor = COURSES[k].color;
             }
         });
 
-        // 2. Chargement des données
         const points = await fetchGPX(key);
         if(points.length === 0) return;
 
         const processed = processDataForChart(points);
-        // Ratio pour la synchro carte <-> graph
         const ratio = points.length / processed.data.length;
 
-        // 3. Update UI Stats
         document.getElementById('stat-dist').innerText = processed.stats.dist + " km";
         document.getElementById('stat-dplus').innerText = processed.stats.dPlus + " m";
         document.getElementById('stat-alt').innerText = processed.stats.maxAlt + " m";
 
-        // 4. Dessin sur la carte
         if (state.currentLayer) state.map.removeLayer(state.currentLayer);
         const latlngs = points.map(p => [p[0], p[1]]);
-        state.currentLayer = L.polyline(latlngs, { 
-            color: course.color, 
-            weight: 4, 
-            opacity: 0.8, 
-            lineJoin: 'round' 
-        }).addTo(state.map);
-        
-        // Zoom automatique sur le parcours
+        state.currentLayer = L.polyline(latlngs, { color: course.color, weight: 4, opacity: 0.8, lineJoin: 'round' }).addTo(state.map);
         state.map.fitBounds(state.currentLayer.getBounds(), { padding: [20, 20] });
 
-        // 5. Update du Graphique
         state.chart.data.labels = processed.labels;
         state.chart.data.datasets[0].data = processed.data;
         state.chart.data.datasets[0].borderColor = course.color;
-        // Petit dégradé ou transparence pour le remplissage
         state.chart.data.datasets[0].backgroundColor = hexToRgba(course.color, 0.2);
         
-        // Callback Hover
         state.chart.options.onHover = (e, elements) => {
             if (elements && elements.length > 0) updateMapMarker(elements[0].index, points, ratio);
             else if(marker) marker.remove();
@@ -411,7 +329,6 @@
         state.chart.update();
     }
 
-    // Utilitaire couleur
     function hexToRgba(hex, alpha) {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -419,49 +336,39 @@
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    // Gestion du bouton Toggle Profil
     function toggleChart() {
         state.chartVisible = !state.chartVisible;
         const box = document.getElementById('chart-box');
-        const btnText = document.querySelector('#btn-toggle-chart span');
+        const btn = document.getElementById('btn-toggle-chart');
 
         if (state.chartVisible) {
             box.classList.remove('hidden');
-            btnText.innerText = "📉 Masquer le profil";
+            btn.classList.add('active'); // Change la couleur du texte
         } else {
             box.classList.add('hidden');
-            btnText.innerText = "📈 Afficher le profil";
+            btn.classList.remove('active');
         }
 
-        // IMPORTANT : Quand on change la taille du DOM, Leaflet perd le nord.
-        // Il faut appeler invalidateSize() pour qu'il recalcule les tuiles.
         setTimeout(() => {
             state.map.invalidateSize();
-            // On refit les bounds pour être sûr que le parcours est bien centré dans le nouvel espace
             if (state.currentLayer) {
                 state.map.fitBounds(state.currentLayer.getBounds(), { padding: [20, 20] });
             }
-        }, 350); // Le délai doit matcher la transition CSS (0.3s)
+        }, 350);
     }
 
-    // --- INIT ---
     function init() {
-        // Init Leaflet
         state.map = L.map('lw-map', { zoomControl: false }).setView([45.6, 4.6], 10);
         L.control.zoom({ position: 'topright' }).addTo(state.map);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19
         }).addTo(state.map);
-        
-        // Petit hack pour forcer le rendu correct au chargement
         setTimeout(() => state.map.invalidateSize(), 500); 
 
-        // Génération des boutons de parcours
         const btnContainer = document.getElementById('course-buttons');
         Object.keys(COURSES).forEach(key => {
             const c = COURSES[key];
             const btn = document.createElement('div');
-            // J'ajoute data-key ici pour identifier formellement le bouton plus tard
             btn.className = `lw-btn`; 
             btn.dataset.key = key; 
             btn.innerHTML = `<div class="lw-btn-dot" style="background-color:${c.color}"></div> ${c.name}`;
@@ -469,61 +376,34 @@
             btnContainer.appendChild(btn);
         });
 
-        // Setup du bouton toggle chart
+        // J'écoute maintenant le clic sur le bouton dans le footer
         document.getElementById('btn-toggle-chart').onclick = toggleChart;
 
-        // Init Chart.js
         const ctx = document.getElementById('elevationChart').getContext('2d');
         state.chart = new Chart(ctx, {
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Altitude (m)', data: [], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 6, fill: true, tension: 0.2 }] },
             options: {
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { 
-                        mode: 'index', 
-                        intersect: false,
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        titleColor: '#000',
-                        bodyColor: '#333',
-                        borderColor: '#ccc',
-                        borderWidth: 1,
-                        padding: 10,
-                        titleFont: { size: 14, family: "'Roboto', sans-serif" },
-                        bodyFont: { size: 13, family: "'Roboto', sans-serif" },
-                        callbacks: { title: (i) => `Km ${i[0].label}`, label: (i) => `${Math.round(i.raw)} m` } 
-                    } 
-                },
-                scales: { 
-                    x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: {size: 10} } }, 
-                    y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: {size: 10} } } 
-                },
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(255, 255, 255, 0.95)', titleColor: '#000', bodyColor: '#333', borderColor: '#ccc', borderWidth: 1, padding: 10, titleFont: { size: 14, family: "'Roboto', sans-serif" }, bodyFont: { size: 13, family: "'Roboto', sans-serif" }, callbacks: { title: (i) => `Km ${i[0].label}`, label: (i) => `${Math.round(i.raw)} m` } } },
+                scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: {size: 10} } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: {size: 10} } } },
                 interaction: { mode: 'nearest', axis: 'x', intersect: false }
             }
         });
 
-        // Dark Mode Logic
         document.getElementById('lw-dark-check').onchange = (e) => {
             document.getElementById('lyon-widget').classList.toggle('lw-dark', e.target.checked);
             const isDark = e.target.checked;
             const textColor = isDark ? '#ADB5BD' : '#666';
-            
-            // On update aussi les couleurs du graph pour que ce soit lisible
             state.chart.options.scales.x.ticks.color = textColor;
             state.chart.options.scales.y.ticks.color = textColor;
             state.chart.update();
-
-             // InvalidateSize est vital quand le conteneur change de dimension ou de style
             setTimeout(() => state.map.invalidateSize(), 100);
         };
 
-        // On lance le premier parcours !
         switchCourse('saintelyon');
     }
 
-    // Démarrage au chargement du DOM
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
 
