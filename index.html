@@ -163,7 +163,7 @@
             <div class="lw-error-msg" id="lw-error"></div>
         </div>
 
-        <div class="lw-chart-container hidden" id="chart-box">
+        <div class="lw-chart-container" id="chart-box">
             <div class="lw-stats">
                 <span>Dist. <span class="lw-stat-val" id="stat-dist">-</span></span>
                 <span>D+ <span class="lw-stat-val" id="stat-dplus">-</span></span>
@@ -176,7 +176,7 @@
             <div class="lw-source-credit">Données : <b>OpenRunner</b></div>
             
             <div class="lw-footer-options">
-                <div class="lw-text-btn" id="btn-toggle-chart">
+                <div class="lw-text-btn active" id="btn-toggle-chart">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.5 14.5L13.5 7.5L8.5 12.5L4.5 9"/></svg>
                     <span>Profil</span>
                 </div>
@@ -192,6 +192,7 @@
 
 <script>
 (function() {
+    // --- DATA ---
     const COURSES = {
         "lyonsaintelyon": { name: "Lyon-SaintéLyon", url: "data/lyonsaintelyon.gpx", color: "#C900CC", cache: null },
         "saintelyon":     { name: "SaintéLyon",  url: "data/saintelyon.gpx",     color: "#CC0000", cache: null },
@@ -200,8 +201,10 @@
         "saintetic":      { name: "SaintéTic",      url: "data/saintetic.gpx",      color: "#00CC0E", cache: null }
     };
 
-    const state = { map: null, currentLayer: null, chart: null, activeCourseKey: 'saintelyon', chartVisible: false };
+    // 'chartVisible' est à true pour l'affichage par défaut
+    const state = { map: null, currentLayer: null, chart: null, activeCourseKey: 'saintelyon', chartVisible: true };
 
+    // --- LOGIQUE GPX (Fonctionnalités non modifiées) ---
     async function fetchGPX(key) {
         const course = COURSES[key];
         const errorBox = document.getElementById('lw-error');
@@ -270,16 +273,14 @@
         const pt = points[Math.min(realIndex, points.length - 1)];
         if (!pt) return;
         
-        // J'ai modifié la création du marker pour forcer la couleur noire
-        // et l'assigner au 'pane' personnalisé créé dans init() pour qu'il soit toujours au-dessus.
         if (marker) {
             marker.setLatLng([pt[0], pt[1]]);
             if(!state.map.hasLayer(marker)) marker.addTo(state.map);
         } else {
             marker = L.circleMarker([pt[0], pt[1]], { 
-                pane: 'markerPane', // C'est ici que la magie opère (Z-index élevé)
+                pane: 'markerPane', 
                 radius: 6, 
-                fillColor: "#000000", // Toujours noir
+                fillColor: "#000000", 
                 color: "#FFF", 
                 weight: 2, 
                 opacity: 1, 
@@ -311,7 +312,7 @@
         const ratio = points.length / processed.data.length;
 
         document.getElementById('stat-dist').innerText = processed.stats.dist + " km";
-        document.getElementById('stat-dplus').innerText = processed.stats.dPlus + " m";
+        document.getElementById('stat-dplus').innerText = processed.stats.dplus + " m";
         document.getElementById('stat-alt').innerText = processed.stats.maxAlt + " m";
 
         if (state.currentLayer) state.map.removeLayer(state.currentLayer);
@@ -338,6 +339,7 @@
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
+    // --- MODIFICATION ICI : Suppression du marqueur quand on cache le graphique ---
     function toggleChart() {
         state.chartVisible = !state.chartVisible;
         const box = document.getElementById('chart-box');
@@ -349,6 +351,11 @@
         } else {
             box.classList.add('hidden');
             btn.classList.remove('active');
+            
+            // Si le graphique est masqué, on retire le marqueur de survol de la carte
+            if (marker && state.map.hasLayer(marker)) {
+                marker.remove();
+            }
         }
 
         setTimeout(() => {
@@ -358,13 +365,11 @@
             }
         }, 350);
     }
+    // -----------------------------------------------------------------------------
 
     function init() {
         state.map = L.map('lw-map', { zoomControl: false }).setView([45.6, 4.6], 10);
         
-        // --- CRÉATION DU CUSTOM PANE ---
-        // On crée un calque spécifique pour le marqueur afin qu'il soit toujours au-dessus du tracé.
-        // Le z-index par défaut des overlays (lignes) est 400. On met le marqueur à 650.
         state.map.createPane('markerPane');
         state.map.getPane('markerPane').style.zIndex = 650;
 
@@ -410,6 +415,8 @@
         };
 
         switchCourse('saintelyon');
+        
+        setTimeout(() => state.map.invalidateSize(), 500); 
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
