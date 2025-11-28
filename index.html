@@ -56,7 +56,6 @@
         background-color: var(--lw-bg-alt); 
         border-bottom: 1px solid var(--lw-border); 
         flex-shrink: 0;
-        /* J'ai retiré le display column car on n'a plus qu'une seule ligne de boutons maintenant */
     }
     
     #lyon-widget .lw-course-selector { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
@@ -75,11 +74,9 @@
     #lyon-widget #lw-map-wrapper { 
         position: relative; width: 100%; 
         /* [NOTE HAUTEUR-CARTE] 
-           C'est ici que ça se joue.
-           "flex: 1" veut dire "prends tout l'espace disponible restant".
-           Si tu veux que la carte soit plus petite ou plus grande par défaut, 
-           tu peux jouer sur le "min-height".
-           Par exemple : min-height: 300px; forcera la carte à être grande.
+           C'est ici que tu gères la hauteur par défaut de la carte.
+           "flex: 1" = prend tout l'espace disponible.
+           "min-height" = hauteur minimale garantie.
         */
         flex: 1; 
         min-height: 150px; 
@@ -102,7 +99,7 @@
     #lyon-widget .lw-stat-val { font-weight: 700; color: var(--lw-orange); font-family: monospace; font-size: 13px; }
     #lyon-widget canvas { flex: 1; min-height: 0; max-height: 160px; } 
 
-    /* --- FOOTER (Nouveau Design) --- */
+    /* --- FOOTER --- */
     #lyon-widget footer { 
         padding: 8px 15px; background: var(--lw-bg-alt); border-top: 1px solid var(--lw-border); 
         display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--lw-muted);
@@ -111,14 +108,9 @@
         border-bottom-right-radius: var(--lw-radius);
     }
     
-    /* Groupe d'options à droite (Profil + Dark Mode) */
-    #lyon-widget .lw-footer-options {
-        display: flex;
-        align-items: center;
-        gap: 15px; /* Espace entre "Profil" et "Sombre" */
-    }
+    #lyon-widget .lw-footer-options { display: flex; align-items: center; gap: 15px; }
 
-    /* Bouton texte simple pour le profil (Style "Le Monde") */
+    /* Bouton texte simple pour le profil */
     #lyon-widget .lw-text-btn {
         cursor: pointer; display: flex; align-items: center; gap: 4px; 
         transition: color 0.2s; font-weight: 500;
@@ -188,7 +180,6 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.5 14.5L13.5 7.5L8.5 12.5L4.5 9"/></svg>
                     <span>Profil</span>
                 </div>
-
                 <label class="lw-toggle-wrapper">
                     <input type="checkbox" id="lw-dark-check" style="display:none">
                     <span class="lw-switch"></span>
@@ -278,11 +269,22 @@
         const realIndex = Math.floor(index * ratio);
         const pt = points[Math.min(realIndex, points.length - 1)];
         if (!pt) return;
+        
+        // J'ai modifié la création du marker pour forcer la couleur noire
+        // et l'assigner au 'pane' personnalisé créé dans init() pour qu'il soit toujours au-dessus.
         if (marker) {
             marker.setLatLng([pt[0], pt[1]]);
-            marker.addTo(state.map);
+            if(!state.map.hasLayer(marker)) marker.addTo(state.map);
         } else {
-            marker = L.circleMarker([pt[0], pt[1]], { radius: 6, fillColor: COURSES[state.activeCourseKey].color, color: "#FFF", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(state.map);
+            marker = L.circleMarker([pt[0], pt[1]], { 
+                pane: 'markerPane', // C'est ici que la magie opère (Z-index élevé)
+                radius: 6, 
+                fillColor: "#000000", // Toujours noir
+                color: "#FFF", 
+                weight: 2, 
+                opacity: 1, 
+                fillOpacity: 1 
+            }).addTo(state.map);
         }
     }
 
@@ -343,7 +345,7 @@
 
         if (state.chartVisible) {
             box.classList.remove('hidden');
-            btn.classList.add('active'); // Change la couleur du texte
+            btn.classList.add('active'); 
         } else {
             box.classList.add('hidden');
             btn.classList.remove('active');
@@ -359,6 +361,13 @@
 
     function init() {
         state.map = L.map('lw-map', { zoomControl: false }).setView([45.6, 4.6], 10);
+        
+        // --- CRÉATION DU CUSTOM PANE ---
+        // On crée un calque spécifique pour le marqueur afin qu'il soit toujours au-dessus du tracé.
+        // Le z-index par défaut des overlays (lignes) est 400. On met le marqueur à 650.
+        state.map.createPane('markerPane');
+        state.map.getPane('markerPane').style.zIndex = 650;
+
         L.control.zoom({ position: 'topright' }).addTo(state.map);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 19
@@ -376,7 +385,6 @@
             btnContainer.appendChild(btn);
         });
 
-        // J'écoute maintenant le clic sur le bouton dans le footer
         document.getElementById('btn-toggle-chart').onclick = toggleChart;
 
         const ctx = document.getElementById('elevationChart').getContext('2d');
