@@ -398,7 +398,26 @@
             data: { labels: [], datasets: [{ label: 'Altitude (m)', data: [], borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 6, fill: true, tension: 0.2 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(255, 255, 255, 0.95)', titleColor: '#000', bodyColor: '#333', borderColor: '#ccc', borderWidth: 1, padding: 10, titleFont: { size: 14, family: "'Roboto', sans-serif" }, bodyFont: { size: 13, family: "'Roboto', sans-serif" }, callbacks: { title: (i) => `Km ${i[0].label}`, label: (i) => `${Math.round(i.raw)} m` } } },
+                plugins: { 
+                    legend: { display: false }, 
+                    tooltip: { 
+                        mode: 'index', 
+                        intersect: false, 
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                        titleColor: '#000', 
+                        bodyColor: '#333', 
+                        borderColor: '#ccc', 
+                        borderWidth: 1, 
+                        padding: 10, 
+                        titleFont: { size: 14, family: "'Roboto', sans-serif" }, 
+                        bodyFont: { size: 13, family: "'Roboto', sans-serif" }, 
+                        callbacks: { 
+                            title: (i) => `Km ${i[0].label}`, 
+                            // LIGNE CORRIGÉE : Utilise i.parsed.y pour récupérer la valeur numérique de l'altitude
+                            label: (i) => `${Math.round(i.parsed.y)} m` 
+                        } 
+                    } 
+                },
                 scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: {size: 10} } }, y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: {size: 10} } } },
                 interaction: { mode: 'nearest', axis: 'x', intersect: false }
             }
