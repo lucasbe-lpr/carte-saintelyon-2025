@@ -77,11 +77,11 @@
            C'est ici que tu gères la hauteur par défaut de la carte.
         */
         
-        /* MODIFICATIONS POUR HAUTEUR MAX. (400px) */
-        flex: none; 
-        height: 100%; 
-        max-height: 400px; 
-        /* FIN DES MODIFICATIONS */
+        /* RETOUR À LA CONFIGURATION ORIGINALE POUR LA HAUTEUR */
+        flex: 0.7; /* Prend tout l'espace disponible */
+        /* height: 100%;
+           max-height: 400px;
+        ONT ÉTÉ RETIRÉS */
         
         min-height: 150px; 
         z-index: 1; 
@@ -170,7 +170,6 @@
         <div class="lw-chart-container" id="chart-box">
             <div class="lw-stats">
                 <span>Dist. <span class="lw-stat-val" id="stat-dist">-</span></span>
-                <span>D+ <span class="lw-stat-val" id="stat-dplus">-</span></span>
                 <span>Alt. Max <span class="lw-stat-val" id="stat-alt">-</span></span>
             </div>
             <canvas id="elevationChart"></canvas>
@@ -316,7 +315,7 @@
         const ratio = points.length / processed.data.length;
 
         document.getElementById('stat-dist').innerText = processed.stats.dist + " km";
-        document.getElementById('stat-dplus').innerText = processed.stats.dplus + " m";
+        // Suppression de la ligne D+ conservée
         document.getElementById('stat-alt').innerText = processed.stats.maxAlt + " m";
 
         if (state.currentLayer) state.map.removeLayer(state.currentLayer);
@@ -417,7 +416,6 @@
                         bodyFont: { size: 13, family: "'Roboto', sans-serif" }, 
                         callbacks: { 
                             title: (i) => `Km ${i[0].label}`, 
-                            // Correction du "undefined" dans le tooltip
                             label: (i) => `${Math.round(i.parsed.y)} m` 
                         } 
                     } 
