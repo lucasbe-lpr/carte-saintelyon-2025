@@ -75,10 +75,14 @@
         position: relative; width: 100%; 
         /* [NOTE HAUTEUR-CARTE] 
            C'est ici que tu gères la hauteur par défaut de la carte.
-           "flex: 1" = prend tout l'espace disponible.
-           "min-height" = hauteur minimale garantie.
         */
-        flex: 1; 
+        
+        /* MODIFICATIONS POUR HAUTEUR MAX. (400px) */
+        flex: none; 
+        height: 100%; 
+        max-height: 400px; 
+        /* FIN DES MODIFICATIONS */
+        
         min-height: 150px; 
         z-index: 1; 
     }
@@ -173,7 +177,7 @@
         </div>
 
         <footer> 
-            <div class="lw-source-credit">Données : <b>OpenRunner</b></div>
+            <div class="lw-source-credit">Carte : <b>Lucas Bessonnat</b> | Données : <b>OpenRunner</b></div>
             
             <div class="lw-footer-options">
                 <div class="lw-text-btn active" id="btn-toggle-chart">
@@ -413,7 +417,7 @@
                         bodyFont: { size: 13, family: "'Roboto', sans-serif" }, 
                         callbacks: { 
                             title: (i) => `Km ${i[0].label}`, 
-                            // LIGNE CORRIGÉE : Utilise i.parsed.y pour récupérer la valeur numérique de l'altitude
+                            // Correction du "undefined" dans le tooltip
                             label: (i) => `${Math.round(i.parsed.y)} m` 
                         } 
                     } 
